@@ -11482,8 +11482,9 @@ pre {
 }
 
 .header .container .infos .title {
-  margin-bottom: 0px;
-  font-size: 74px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  font-size: 62px;
   font-weight: bold;
 }
 
