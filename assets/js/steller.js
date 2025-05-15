@@ -1,18 +1,3 @@
-/*!
-=========================================================
-* Steller Landing page
-=========================================================
-
-* Copyright: 2019 DevCRUD (https://devcrud.com)
-* Licensed: (https://devcrud.com/licenses)
-* Coded by www.devcrud.com
-
-=========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
-
-// smooth scroll
 $(document).ready(function(){
 	$(".nav-link").on('click', function(event) {
 
@@ -28,5 +13,14 @@ $(document).ready(function(){
 				window.location.hash = hash;
 			});
       	} 
+    });
+
+	$('#download-btn').on('click', function(){
+        var link = document.createElement('a');
+        link.href = 'assets/cv/'; // 다운로드할 PDF 경로
+        link.download = 'cv_yeonwoojang.pdf'; // 다운로드 파일 이름
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     });
 });
