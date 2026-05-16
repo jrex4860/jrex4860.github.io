@@ -243,6 +243,29 @@
       z-index: 2;
     }*/
 
+    @media (max-width: 768px) {
+     .hero-photo {
+       margin-bottom: 0; /* 데스크탑 200px 초기화 */
+       height: 300px;
+     }
+
+     .photo-bg-circle {
+       width: 260px;
+       height: 260px;
+       bottom: 0;
+     }
+   
+     .profile-img {
+       position: absolute;
+       width: 260px;
+       height: 260px;
+       object-fit: cover;
+       border-radius: 50%;
+       margin-bottom: 0;
+       bottom: 0;
+     }
+   }
+
     .hero-photo {
       flex: 0 0 340px;
       position: relative;
