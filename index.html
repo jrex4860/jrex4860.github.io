@@ -277,13 +277,18 @@
 
    @media (max-width: 768px) {
      .hero-photo {
-       margin-bottom: 0; /* 데스크탑 200px 초기화 */
+       flex: 0 0 340px;
+       position: relative;
+       display: flex;
+       align-items: flex-end;
+       justify-content: center;
        height: 200px;
+       margin-bottom: 0; /* 데스크탑 200px 초기화 */
      }
 
      .photo-bg-circle {
-       width: 200px;
-       height: 200px;
+       width: 280px;
+       height: 280px;
        bottom: 0;
      }
    
