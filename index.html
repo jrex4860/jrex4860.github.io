@@ -243,7 +243,38 @@
       z-index: 2;
     }
 
-    .photo-frame {
+    .hero-photo {
+      flex: 0 0 340px;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      height: 420px;
+    }
+
+    .photo-bg-circle {
+      position: absolute;
+      bottom: 0;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2563eb, #60a5fa);
+      box-shadow: 0 20px 60px rgba(37,99,235,0.3);
+      z-index: 1;
+    }
+
+    .profile-img {
+      position: relative;
+      z-index: 2;
+      width: 280px;
+      height: auto;
+      object-fit: contain;
+      object-position: bottom;
+      /* 원 위로 살짝 올라오게 */
+      margin-bottom: 20px;
+    }
+
+    /*.photo-frame {
       width: 300px;
       height: 300px;
       border-radius: 50%;
@@ -264,7 +295,7 @@
       line-height: 1;
       padding-bottom: 10px;
       user-select: none;
-    }
+    }*/
 
     /* ── STATS WIDGET ── */
     .stats-bar {
@@ -601,9 +632,8 @@
     </div>
 
     <div class="hero-photo">
-     <div class="photo-frame">
-  <img src="assets/imgs/1778921111782.png" alt="Yeonwoo Jang" style="width:100%; height:100%; object-fit:cover; border-radius:50%;" />
-     </div>
+     <div class="photo-bg-circle"></div>
+      <img class="profile-img" src="assets/imgs/         1778921111782.png" alt="Yeonwoo Jang" />
     </div>
   </div>
 </section>
