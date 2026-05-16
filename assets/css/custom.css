@@ -1,4 +1,11 @@
-* {
+/* =========================================
+   custom.css — Yeonwoo Jang Portfolio
+   ========================================= */
+
+/* ---------- Reset & Base ---------- */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -16,8 +23,10 @@ body {
 img {
   max-width: 100%;
   height: auto;
+  display: block;
 }
 
+/* ---------- Layout ---------- */
 .section {
   padding: 80px 0;
 }
@@ -28,11 +37,26 @@ img {
   margin: 0 auto;
 }
 
-/* Navbar */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+/* 그리드 컬럼 — flex:1 로 균등 분배 */
+.col-sm-6,
+.col-sm-4,
+.col-md-3,
+.col-md-4 {
+  flex: 1;
+  min-width: 0; /* flex 자식 overflow 방지 */
+}
+
+/* ---------- Navbar ---------- */
 .navbar {
-  background: white;
+  background: #fff;
   padding: 14px 0;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .navbar-brand img {
@@ -44,13 +68,14 @@ img {
   font-weight: 600;
   margin-left: 20px;
   text-decoration: none;
+  transition: color 0.2s;
 }
 
 .nav-link:hover {
   color: #695aa6;
 }
 
-/* Header */
+/* ---------- Header / Hero ---------- */
 .header {
   min-height: 100vh;
   padding-top: 100px;
@@ -68,6 +93,7 @@ img {
 .infos,
 .img-holder {
   flex: 1;
+  min-width: 0;
 }
 
 .subtitle {
@@ -82,34 +108,41 @@ img {
   font-weight: 700;
 }
 
+/* ---------- Buttons ---------- */
 .btn {
   display: inline-block;
   border: none;
   padding: 12px 24px;
   cursor: pointer;
   font-weight: 600;
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+.btn:hover {
+  opacity: 0.85;
 }
 
 .btn-primary {
   background: #695aa6;
-  color: white;
+  color: #fff;
 }
 
 .rounded {
   border-radius: 30px;
 }
 
-/* Widget */
+/* ---------- Stats Widget ---------- */
 .widget {
   width: 90%;
   max-width: 900px;
   margin: 50px auto 0;
   padding: 24px;
-  background: white;
+  background: #fff;
   display: flex;
   justify-content: space-around;
   gap: 20px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
 }
 
@@ -122,23 +155,10 @@ img {
   margin: 0;
 }
 
-/* Cards */
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 24px;
-}
-
-.col-sm-6,
-.col-md-3,
-.col-sm-4,
-.col-md-4 {
-  flex: 1;
-}
-
-.custom-card,
-.card {
-  background: white;
+/* ---------- Cards ---------- */
+.card,
+.custom-card {
+  background: #fff;
   border: 1px solid #eee;
   border-radius: 12px;
   overflow: hidden;
@@ -153,7 +173,7 @@ img {
   color: #695aa6;
 }
 
-/* Portfolio */
+/* ---------- Portfolio / Image Wrapper ---------- */
 .img-wrapper {
   position: relative;
   margin-bottom: 24px;
@@ -162,26 +182,31 @@ img {
 }
 
 .img-wrapper img {
-  display: block;
   width: 100%;
+  transition: transform 0.3s ease;
+}
+
+.img-wrapper:hover img {
+  transform: scale(1.04);
 }
 
 .overlay {
   position: absolute;
   inset: 0;
-  background: rgba(105,90,166,0.85);
-  color: white;
+  background: rgba(105, 90, 166, 0.85);
+  color: #fff;
   display: none;
   align-items: center;
   justify-content: center;
   text-align: center;
+  padding: 16px;
 }
 
 .img-wrapper:hover .overlay {
   display: flex;
 }
 
-/* Contact */
+/* ---------- Contact ---------- */
 .contact {
   display: flex;
   gap: 40px;
@@ -191,6 +216,7 @@ img {
 .form,
 .contact-infos {
   flex: 1;
+  min-width: 0;
 }
 
 .form-control {
@@ -199,6 +225,13 @@ img {
   margin-bottom: 16px;
   border: 1px solid #ddd;
   border-radius: 8px;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #695aa6;
 }
 
 .item {
@@ -207,12 +240,7 @@ img {
   margin-bottom: 24px;
 }
 
-#map iframe {
-  width: 100%;
-  min-height: 320px;
-}
-
-/* Footer */
+/* ---------- Footer ---------- */
 .page-footer {
   padding: 24px 0;
   background: #f7f7f7;
@@ -222,12 +250,19 @@ img {
   margin-left: 12px;
   color: #695aa6;
   text-decoration: none;
+  transition: opacity 0.2s;
 }
 
-/* Mobile */
+.social-item:hover {
+  opacity: 0.7;
+}
+
+/* =========================================
+   Mobile — max-width: 768px
+   ========================================= */
 @media (max-width: 768px) {
-  .header .container,
-  .contact {
+  /* Hero */
+  .header .container {
     flex-direction: column;
     text-align: center;
   }
@@ -236,20 +271,39 @@ img {
     font-size: 2.4rem;
   }
 
-  .widget {
-    flex-direction: column;
+  .buttons .btn {
+    width: 100%;
+    text-align: center;
   }
 
+  /* Widget */
+  .widget {
+    flex-direction: column;
+    width: 95%;
+  }
+
+  /* Grid */
   .row {
     flex-direction: column;
   }
 
+  .col-sm-6,
+  .col-sm-4,
+  .col-md-3,
+  .col-md-4 {
+    flex: none;
+    width: 100%;
+  }
+
+  /* Navbar */
   .nav-link {
     margin-left: 0;
   }
 
-  .buttons .btn {
-    width: 100%;
+  /* Contact */
+  .contact {
+    flex-direction: column;
+    text-align: center;
   }
 
   .item {
