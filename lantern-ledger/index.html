@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>절 연등 장부</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: 왼쪽 큰 글씨 업무 패널(찾기·등록·미납) + 오른쪽 가족 점지도(연등 = 점). 좁은 화면에선 지도 위, 패널 아래 */
+:root{
+  --paper:#EDF1EE; --surface:#FFFFFF; --ink:#1B2623; --muted:#53625C; --line:#CCD6D1;
+  --pine:#1D5A47; --on-pine:#FFFFFF; --pine-soft:#DDEAE4;
+  --lantern:#D23F6B; --lantern-glow:rgba(210,63,107,.26); --lantern-soft:#FBE4EB;
+  --unlit:#97A39D; --due:#B06A00; --due-soft:#FBEFD9;
+  --map:#E3E9E5; --island:rgba(29,90,71,.06); --island-on:rgba(29,90,71,.13);
+  --f-display:"Nanum Myeongjo","AppleMyungjo","Batang",serif;
+  --f-body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#111816; --surface:#19221F; --ink:#E5ECE8; --muted:#9BABA4; --line:#2D3A36;
+  --pine:#62B898; --on-pine:#0C1512; --pine-soft:#1F3029;
+  --lantern:#FF6A93; --lantern-glow:rgba(255,106,147,.34); --lantern-soft:#3A1E27;
+  --unlit:#5E6C66; --due:#E9A23B; --due-soft:#33291A;
+  --map:#0C1311; --island:rgba(98,184,152,.06); --island-on:rgba(98,184,152,.14);
+  color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#111816; --surface:#19221F; --ink:#E5ECE8; --muted:#9BABA4; --line:#2D3A36;
+  --pine:#62B898; --on-pine:#0C1512; --pine-soft:#1F3029;
+  --lantern:#FF6A93; --lantern-glow:rgba(255,106,147,.34); --lantern-soft:#3A1E27;
+  --unlit:#5E6C66; --due:#E9A23B; --due-soft:#33291A;
+  --map:#0C1311; --island:rgba(98,184,152,.06); --island-on:rgba(98,184,152,.14);
+  color-scheme:dark }
+
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font:18px/1.55 var(--f-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;box-sizing:border-box}
+*,*::before,*::after{box-sizing:border-box}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--pine);outline-offset:2px}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px 28px;padding-block:14px 12px}
+.brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand h1{font:800 30px/1.1 var(--f-display);margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sample{font-size:13px;color:var(--due);background:var(--due-soft);padding:2px 10px;border-radius:99px;font-weight:500}
+.event{display:flex;flex-direction:column;gap:2px;margin-left:auto;min-width:0}
+.event .ev{font-size:15px;color:var(--muted)}
+.event .ev b{color:var(--ink);font-weight:700}
+.stat{display:flex;align-items:center;gap:12px;font-size:16px;font-variant-numeric:tabular-nums;flex-wrap:wrap}
+.bar{width:160px;height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--lantern);border-radius:99px;transition:width .4s}
+
+/* app */
+.app{flex:1;min-height:0;display:grid;grid-template-columns:minmax(340px,430px) 1fr;gap:16px;padding-bottom:16px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;min-height:0;min-width:0}
+.side{position:relative;display:flex;min-height:0;min-width:0}
+.side>.panel{flex:1}
+.app.collapsed{grid-template-columns:0 1fr}
+.app.collapsed .side>.panel{display:none}
+.collapse{position:absolute;top:50%;right:-23px;transform:translateY(-50%);z-index:5;width:30px;height:88px;padding:0;border:1px solid var(--line);
+  background:var(--surface);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:28px;line-height:1;color:var(--pine);box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.collapse:hover{background:var(--pine-soft)}
+.collapse .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.app.collapsed .collapse{right:-30px}
+.setrow{display:flex;flex-direction:column;gap:6px}
+.sethead{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sethead label{font-weight:700;font-size:17px}
+.sethead output{font-variant-numeric:tabular-nums;color:var(--pine);font-weight:700;font-size:18px}
+.setctl{display:grid;grid-template-columns:52px 1fr 52px;gap:10px;align-items:center}
+.stepb{height:52px;border:2px solid var(--line);background:var(--paper);border-radius:10px;font-size:24px;font-weight:700;line-height:1}
+.stepb:hover{border-color:var(--pine)}
+.setctl input[type=range]{width:100%;accent-color:var(--pine);height:32px;margin:0}
+.mapset{position:absolute;top:68px;right:12px;z-index:6;width:min(360px,calc(100% - 24px));max-height:calc(100% - 80px);overflow:auto;
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.18);padding:14px 16px 16px;display:flex;flex-direction:column;gap:12px}
+.mshead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mshead .biglabel{margin:0}
+.msclose{width:44px;height:44px;border:1px solid var(--line);background:var(--paper);border-radius:10px;font-size:22px;line-height:1;padding:0}
+#mapset-body{display:flex;flex-direction:column;gap:14px}
+.maptools button[aria-expanded="true"]{background:var(--pine);color:var(--on-pine);border-color:var(--pine)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;border-bottom:1px solid var(--line)}
+.tab{border:0;background:transparent;border-radius:10px;padding:10px 4px;font-weight:700;font-size:17px;min-height:56px;color:var(--muted);line-height:1.25}
+.tab[aria-selected="true"]{background:var(--pine);color:var(--on-pine)}
+.tab .n{display:block;font-size:13px;font-weight:500;opacity:.85}
+.pbody{overflow:auto;padding:18px;display:flex;flex-direction:column;gap:16px;min-height:0}
+
+.biglabel{font:700 22px/1.3 var(--f-display)}
+.search{width:100%;font-size:22px;padding:14px 16px;border:2px solid var(--line);border-radius:12px;background:var(--paper);min-height:60px}
+.search:focus{border-color:var(--pine);outline:none}
+.hint{color:var(--muted);font-size:15px;margin:0}
+.list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.row{width:100%;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;text-align:left;
+  background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-height:64px}
+.row:hover{border-color:var(--pine)}
+.row .nm{font-weight:700;font-size:20px;display:block}
+.row .sb{font-size:14px;color:var(--muted);display:block}
+.row mark{background:var(--lantern-soft);color:inherit;border-radius:3px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--paper);border-radius:99px;padding:8px 14px;font-size:16px;min-height:44px}
+.chip:hover{border-color:var(--pine)}
+.pill{font-size:14px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap}
+.pill.lit{background:var(--lantern-soft);color:var(--lantern)}
+.pill.due{background:var(--due-soft);color:var(--due)}
+.pill.none{background:var(--line);color:var(--muted)}
+
+.dot{width:18px;height:18px;border-radius:50%;flex:none;border:2.5px solid var(--unlit);background:var(--surface)}
+.dot.lit{background:var(--lantern);border-color:var(--lantern);box-shadow:0 0 0 4px var(--lantern-glow)}
+.dot.due{border-color:var(--due)}
+.dot.dec{border-style:dashed}
+.dot.big{width:34px;height:34px}
+
+.back{align-self:flex-start;border:0;background:transparent;color:var(--pine);font-weight:700;padding:6px 0;font-size:17px}
+.phead{display:flex;gap:14px;align-items:center}
+.phead h2{font:800 32px/1.15 var(--f-display);margin:0}
+.phead .sub{margin:2px 0 0;color:var(--muted);font-size:16px}
+.status{border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.status strong{font-size:20px}
+.status span{font-size:15px;color:var(--muted)}
+.status.lit{background:var(--lantern-soft)} .status.lit strong{color:var(--lantern)}
+.status.due{background:var(--due-soft)} .status.due strong{color:var(--due)}
+.status.none{background:var(--paper)}
+.primary{background:var(--pine);color:var(--on-pine);border:0;border-radius:12px;font-weight:700;font-size:20px;padding:14px 18px;min-height:60px;width:100%}
+.primary:hover{filter:brightness(1.08)}
+.secondary{background:var(--surface);color:var(--pine);border:2px solid var(--pine);border-radius:12px;font-weight:700;font-size:18px;padding:12px 16px;min-height:56px;width:100%}
+.ghost{background:transparent;border:1px solid var(--line);border-radius:12px;padding:12px 16px;min-height:56px;font-size:18px}
+.btnrow{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+.box{border:2px solid var(--pine);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--surface)}
+.q{margin:0;font-weight:700;font-size:18px}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:96px;border:2px solid var(--line);background:var(--paper);border-radius:10px;padding:10px 8px;min-height:56px;font-size:17px;font-weight:500;line-height:1.25}
+.seg button[aria-checked="true"]{border-color:var(--pine);background:var(--pine-soft);font-weight:700}
+.seg small{display:block;font-size:13px;color:var(--muted);font-weight:400}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-weight:700;font-size:17px}
+.field label small{font-weight:400;color:var(--muted);font-size:14px}
+.input{font-size:20px;padding:12px 14px;border:2px solid var(--line);border-radius:10px;background:var(--paper);min-height:56px;width:100%}
+.input:focus{border-color:var(--pine);outline:none}
+.err{color:var(--lantern);font-size:15px;margin:0;font-weight:500}
+.check{display:flex;gap:10px;align-items:center;font-size:18px;min-height:44px}
+.check input{width:24px;height:24px;accent-color:var(--pine)}
+dl.info{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0;font-size:17px}
+dl.info dt{color:var(--muted)} dl.info dd{margin:0;font-variant-numeric:tabular-nums}
+h3.sec{font:700 20px/1.3 var(--f-display);margin:6px 0 0}
+.total{font-variant-numeric:tabular-nums;font-weight:700}
+.mini{font-size:15px;color:var(--muted);margin:0}
+.bulklist{margin:0;padding-left:20px;font-size:16px;font-variant-numeric:tabular-nums}
+
+/* map */
+.mapwrap{position:relative;background:var(--map);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-height:0;min-width:0}
+#map{width:100%;height:100%;display:block;touch-action:none;cursor:grab;user-select:none;-webkit-user-select:none}
+#map.dragging{cursor:grabbing}
+.maptop{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;pointer-events:none}
+.maptools{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px;pointer-events:auto}
+.maptools button{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 14px;font-size:16px;font-weight:700;min-height:44px}
+.maptools .zb{width:44px;padding:0;font-size:22px}
+.legend{position:absolute;left:12px;bottom:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 12px;
+  display:flex;flex-wrap:wrap;gap:6px 16px;font-size:14px;max-width:calc(100% - 24px)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend .dot{width:14px;height:14px}
+.legend .ln{width:22px;border-top:2px dashed var(--muted)}
+.maphint{font-size:14px;color:var(--muted);min-width:0;padding-top:2px}
+
+svg .isl{fill:var(--island);stroke:transparent;stroke-width:2;transition:fill .3s}
+svg .island{cursor:pointer;transition:opacity .35s}
+svg .island.on .isl{fill:var(--island-on);stroke:var(--pine)}
+svg .flabel{fill:var(--muted);font-size:var(--fam-size,17px);font-weight:700;text-anchor:middle}
+svg .island.on .flabel{fill:var(--pine)}
+svg .kin{stroke:var(--line);stroke-width:var(--kin-w,2.5)}
+svg .rel{stroke:var(--muted);stroke-width:var(--rel-w,2);stroke-dasharray:6 6;fill:none;opacity:.7}
+svg .rlabel{fill:var(--muted);font-size:calc(var(--name-size,13px) * .9);text-anchor:middle}
+svg.nonames .node text, svg.norels .relg{display:none}
+svg .node{cursor:pointer;transition:opacity .35s}
+svg .node .core{fill:var(--surface);stroke:var(--unlit);stroke-width:3}
+svg .node .glow{fill:transparent}
+svg .node.lit .core{fill:var(--lantern);stroke:var(--lantern)}
+svg .node.lit .glow{fill:var(--lantern-glow)}
+svg .node.due .core{stroke:var(--due)}
+svg .node.dec .core{stroke-dasharray:4 3}
+svg .node .ring{fill:none;stroke:transparent;stroke-width:3}
+svg .node.sel .ring{stroke:var(--ink)}
+svg .node:focus{outline:none} svg .node:focus-visible .ring{stroke:var(--pine)}
+svg .node text{fill:var(--ink);font-size:var(--name-size,13px);text-anchor:middle;font-weight:500;paint-order:stroke;stroke:var(--map);stroke-width:4px;stroke-linejoin:round}
+svg .dim{opacity:.18} svg .near{opacity:.55}
+svg .pop .core{animation:pop .6s ease-out;transform-box:fill-box;transform-origin:center}
+@keyframes pop{0%{transform:scale(.15)}60%{transform:scale(1.4)}100%{transform:scale(1)}}
+svg .node.lit .glow{animation:flicker 3.2s ease-in-out infinite}
+svg.noflicker .node.lit .glow{animation:none}
+@keyframes flicker{50%{opacity:.6}}
+@media (prefers-reduced-motion: reduce){svg .node.lit .glow,svg .pop .core{animation:none}.bar i{transition:none}}
+
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--paper);
+  border-radius:12px;padding:12px 12px 12px 18px;display:flex;align-items:center;gap:14px;font-size:17px;max-width:calc(100% - 32px);box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:20}
+.toast button{background:transparent;border:1px solid currentColor;color:inherit;border-radius:8px;padding:6px 12px;font-weight:700;min-height:44px}
+
+@media (max-width:860px){
+  html,body{height:auto}
+  .app{grid-template-columns:1fr}
+  .mapwrap{height:56vh;min-height:340px;order:-1}
+  .event{margin-left:0}
+  .maphint{display:none}
+  .app.collapsed{grid-template-columns:1fr}
+  .app.collapsed .mapwrap{height:78vh}
+  .side{flex-direction:column;gap:8px}
+  .collapse,.app.collapsed .collapse{position:static;transform:none;width:100%;height:52px;font-size:17px;font-weight:700;gap:10px;box-shadow:none}
+  .collapse .lbl{position:static;width:auto;height:auto;clip:auto;overflow:visible}
+  .collapse .chev{display:inline-block;transform:rotate(90deg);font-size:24px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="brand"><h1>연등 장부</h1><span class="sample">시안 · 예시 데이터</span></div>
+  <div class="event">
+    <div class="ev"><b>2027 부처님오신날</b> 연등 접수 중 · 불기 2571년</div>
+    <div class="stat" id="stat"></div>
+  </div>
+</header>
+
+<main class="app">
+  <div class="side">
+  <section class="panel" id="panel-sec" aria-label="업무">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="t-search" data-view="search">찾기</button>
+      <button class="tab" role="tab" id="t-new" data-view="new">새로 등록</button>
+      <button class="tab" role="tab" id="t-due" data-view="due">올해 아직<span class="n" id="due-n"></span></button>
+    </div>
+    <div class="pbody" id="panel"></div>
+  </section>
+  <button class="collapse" id="collapse" aria-controls="panel-sec" aria-expanded="true" title="업무 패널 접기"><span class="chev" aria-hidden="true">‹</span><span class="lbl">업무 패널 접기</span></button>
+  </div>
+  <section class="mapwrap" aria-label="가족 점지도">
+    <svg id="map" role="group" aria-label="점은 사람, 선은 가족 관계"></svg>
+    <div class="maptop">
+      <div class="maphint" id="maphint">마우스 휠이나 두 손가락으로 확대·축소, 끌어서 이동해요. 점을 누르면 그분 정보가 열려요.</div>
+      <div class="maptools"><button class="zb" id="zin" aria-label="크게 보기">+</button><button class="zb" id="zout" aria-label="작게 보기">−</button><button id="fit">전체 보기</button><button id="openset" aria-controls="mapset" aria-expanded="false">지도 설정</button></div>
+    </div>
+    <div class="mapset" id="mapset" role="dialog" aria-label="지도 보기 설정" hidden>
+      <div class="mshead"><p class="biglabel">지도 보기 설정</p><button class="msclose" id="mapset-close" aria-label="설정 닫기">×</button></div>
+      <div id="mapset-body"></div>
+    </div>
+    <div class="legend">
+      <span><i class="dot lit"></i>올해 연등 켬</span>
+      <span><i class="dot due"></i>작년엔 켬 · 올해 아직</span>
+      <span><i class="dot"></i>기록 없음</span>
+      <span><i class="dot dec"></i>영가(돌아가신 분)</span>
+      <span><i class="ln"></i>친척</span>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast" hidden><span id="toast-msg"></span><button id="undo">되돌리기</button></div>
+
+<script>
+const THIS=2027, LAST=2026;
+const PRICE={'축원등':50000,'영가등':100000};
+const RELS=['본인','배우자','남편','아들','딸','며느리','사위','손자','손녀','부친','모친','형제자매','기타'];
+const METHODS=['현금','계좌이체','카드'];
+let families=[],people=[],links=[],seq=100;
+
+/* ---------- 예시 데이터 ---------- */
+[['f3','박춘자 가족'],['f1','김영수 가족'],['f2','김민정 가족'],['f8','송복례 가족'],
+ ['f10','장옥자 가족'],['f4','이말순 가족'],['f5','최현우 가족'],['f9','문성호 가족'],
+ ['f6','정미경 가족'],['f7','정경희 가족'],['f11','홍순임 가족'],['f12','오금순 가족']].forEach(([id,name])=>families.push({id,name}));
+function P(fid,name,rel,phone,birth,pay,x={}){
+  const p={id:'p'+(++seq),fid,name,rel,phone,birth,dec:!!x.dec,memo:x.memo||'',pay:{}};
+  const type=p.dec?'영가등':'축원등';
+  if(pay.includes('L')) p.pay[LAST]={type,amount:PRICE[type],date:'2026-04-18',method:'현금'};
+  if(pay.includes('T')) p.pay[THIS]={type,amount:PRICE[type],date:'2026-11-0'+(1+seq%8),method:seq%2?'계좌이체':'현금'};
+  people.push(p);return p.id;
+}
+const kys=P('f1','김영수','본인','010-2345-7781','1952','LT');
+const bsj=P('f1','박순자','배우자','010-2345-7782','1955','LT');
+P('f1','김민호','아들','010-8812-3304','1980','L');
+P('f1','이지은','며느리','010-8812-3305','1983','L');
+P('f1','김하늘','손녀','','2012','L');
+P('f1','김상철','부친','','기일 음 3월 12일','L',{dec:1});
+const kmj=P('f2','김민정','본인','010-4471-2290','1978','LT');
+P('f2','정태호','남편','010-4471-9013','1976','LT');
+P('f2','정서연','딸','','2008','T');
+const bcj=P('f3','박춘자','본인','010-3390-1156','1950','L');
+P('f3','오세진','아들','010-7720-4418','1974','L');
+P('f3','오윤아','손녀','','2005','L');
+P('f4','이말순','본인','010-5531-0087','1948','LT');
+P('f4','최병규','남편','','기일 음 9월 3일','LT',{dec:1});
+const cjh=P('f4','최지훈','아들','010-6604-2231','1975','L');
+const chw=P('f5','최현우','본인','010-9921-5546','1988','T',{memo:'올해 처음 오심. 최지훈 님 조카'});
+P('f5','강보라','배우자','010-9921-5547','1990','T');
+P('f5','최유나','딸','','2019','T');
+const jmk=P('f6','정미경','본인','010-2218-6673','1965','L');
+P('f6','한도윤','남편','010-2218-6674','1962','L');
+P('f6','한서준','아들','','1994','L');
+P('f6','한서윤','딸','','1997','L');
+const jkh=P('f7','정경희','본인','010-6650-3392','1968','LT');
+P('f7','신동욱','남편','010-6650-3393','1966','LT');
+P('f7','신예린','딸','010-3307-8812','1997','');
+P('f8','송복례','본인','010-1180-4425','1940','L',{memo:'귀가 어두우심. 천천히 크게 말씀드리기'});
+P('f8','윤달수','남편','','기일 음 11월 20일','L',{dec:1});
+P('f9','문성호','본인','010-4039-7716','1970','LT');
+P('f9','배수진','배우자','010-4039-7717','1972','LT');
+P('f9','문지환','아들','010-5528-0921','2001','LT');
+P('f10','장옥자','본인','010-7765-1209','1945','L');
+P('f11','홍순임','본인','010-8843-6620','1953','LT');
+P('f11','남궁철','남편','','기일 음 6월 7일','LT',{dec:1});
+P('f11','남궁현','아들','010-2291-4436','1979','L');
+P('f12','오금순','본인','010-3128-9954','1957','L');
+P('f12','임창수','남편','010-3128-9955','1955','L');
+links=[{a:kmj,b:kys,label:'딸'},{a:bcj,b:bsj,label:'자매'},{a:cjh,b:chw,label:'삼촌·조카'},{a:jmk,b:jkh,label:'자매'}];
+
+/* ---------- 상태 ---------- */
+let view='search', selPid=null, selFid=null, payOpen=false, bulkOpen=false, draft=null, newFid=null, justAdded=null, undoSnap=null, toastTimer=null;
+const $=s=>document.querySelector(s);
+const won=n=>Number(n).toLocaleString('ko-KR')+'원';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const byId=id=>people.find(p=>p.id===id);
+const famOf=fid=>families.find(f=>f.id===fid);
+const members=fid=>people.filter(p=>p.fid===fid);
+const state=p=>p.pay[THIS]?'lit':(p.pay[LAST]?'due':'none');
+const today=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+const md=s=>{const [,m,d]=s.split('-');return (+m)+'월 '+(+d)+'일'};
+const last4=ph=>ph?ph.replace(/\D/g,'').slice(-4):'';
+const snapshot=()=>JSON.stringify({families,people,links});
+function restore(s){const o=JSON.parse(s);families=o.families;people=o.people;links=o.links}
+
+/* ---------- 지도 배치 ---------- */
+/* ---------- 지도 보기 설정 (이 브라우저에만 기억) ---------- */
+const DEF={name:13,fam:17,dot:14,gap:72,kin:2.5,rel:2,names:true,rels:true,flicker:true};
+const PRESETS={'보통':{name:13,fam:17,dot:14,gap:72,kin:2.5,rel:2},'크게':{name:18,fam:22,dot:18,gap:88,kin:3.5,rel:3},'아주 크게':{name:24,fam:28,dot:22,gap:104,kin:4.5,rel:3.5}};
+const SET_ROWS=[['name','이름 글씨 크기',10,30,1],['fam','가족 이름 글씨 크기',12,36,1],['dot','점 크기',8,28,1],['gap','가족 안 점 사이 간격',50,140,2],['kin','가족 선 굵기',1,8,.5],['rel','친척 점선 굵기',1,8,.5]];
+let S={...DEF};
+try{Object.assign(S,JSON.parse(localStorage.getItem('ll-set')||'{}'))}catch(e){}
+function saveS(){try{localStorage.setItem('ll-set',JSON.stringify(S))}catch(e){}}
+
+let CW=300,CH=280,ISL=122,cols=4,pos={},fc={},W=1200,H=840,vb=null;
+function layout(){
+  const w=$('#map').clientWidth||800;
+  cols=w<520?2:(w<860?3:4);
+  const R=S.dot;ISL=S.gap*1.14+R+S.name+16;CW=Math.round(2*ISL+40);CH=Math.round(2*ISL+S.fam+44);
+  pos={};fc={};
+  families.forEach((f,i)=>{
+    const cx=(i%cols)*CW+CW/2, cy=Math.floor(i/cols)*CH+ISL+20;
+    fc[f.id]={x:cx,y:cy};
+    const ms=members(f.id), others=ms.slice(1), r=others.length>5?S.gap*1.14:S.gap, oy=cy-S.name/2;
+    if(ms[0]) pos[ms[0].id]={x:cx,y:oy};
+    others.forEach((p,k)=>{const a=-Math.PI/2+k*2*Math.PI/others.length;pos[p.id]={x:cx+r*Math.cos(a),y:oy+r*Math.sin(a)}});
+  });
+  W=cols*CW;H=Math.ceil(families.length/cols)*CH;
+}
+function relatedFams(fid){
+  const s=new Set();
+  links.forEach(l=>{const a=byId(l.a),b=byId(l.b);if(!a||!b)return;if(a.fid===fid)s.add(b.fid);if(b.fid===fid)s.add(a.fid)});
+  return s;
+}
+function renderMap(){
+  layout();
+  const near=selFid?relatedFams(selFid):new Set();
+  const cls=fid=>!selFid?'':(fid===selFid?'':(near.has(fid)?'near':'dim'));
+  let s='';
+  families.forEach(f=>{const c=fc[f.id];
+    s+=`<g class="island ${f.id===selFid?'on':''} ${cls(f.id)}" data-fid="${f.id}"><circle class="isl" cx="${c.x}" cy="${c.y}" r="${ISL}"/><text class="flabel" x="${c.x}" y="${c.y+ISL+S.fam+2}">${esc(f.name)}</text></g>`});
+  families.forEach(f=>{const ms=members(f.id);if(!ms[0])return;const o=pos[ms[0].id];
+    s+=`<g class="${cls(f.id)}">`+ms.slice(1).map(p=>`<line class="kin" x1="${o.x}" y1="${o.y}" x2="${pos[p.id].x}" y2="${pos[p.id].y}"/>`).join('')+'</g>'});
+  links.forEach(l=>{const a=pos[l.a],b=pos[l.b];if(!a||!b)return;
+    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2-40;
+    const fa=byId(l.a).fid,fb=byId(l.b).fid;
+    const c=!selFid?'':((fa===selFid||fb===selFid)?'':'dim');
+    s+=`<g class="relg ${c}"><path class="rel" d="M${a.x},${a.y} Q${mx},${my} ${b.x},${b.y}"/><text class="rlabel" x="${mx}" y="${my+S.name}">${esc(l.label)}</text></g>`});
+  people.forEach(p=>{const q=pos[p.id];const st=state(p);
+    s+=`<g class="node ${st} ${p.dec?'dec':''} ${p.id===selPid?'sel':''} ${p.id===justAdded?'pop':''} ${cls(p.fid)}" data-pid="${p.id}" tabindex="0" role="button" aria-label="${esc(p.name)}, ${esc(famOf(p.fid).name)}, ${st==='lit'?'올해 연등 켬':st==='due'?'올해 아직':'기록 없음'}">
+      <circle class="glow" cx="${q.x}" cy="${q.y}" r="${S.dot+8}"/><circle class="core" cx="${q.x}" cy="${q.y}" r="${S.dot}"/><circle class="ring" cx="${q.x}" cy="${q.y}" r="${S.dot+6}"/>
+      <text x="${q.x}" y="${q.y+S.dot+S.name+6}">${esc(p.name)}</text></g>`});
+  const svg=$('#map');svg.innerHTML=s;
+  svg.style.setProperty('--name-size',S.name+'px');svg.style.setProperty('--fam-size',S.fam+'px');
+  svg.style.setProperty('--kin-w',S.kin);svg.style.setProperty('--rel-w',S.rel);
+  svg.classList.toggle('nonames',!S.names);svg.classList.toggle('norels',!S.rels);svg.classList.toggle('noflicker',!S.flicker);
+  if(!vb) vb=fitAspect({x:-10,y:-10,w:W+20,h:H+20});
+  svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
+  justAdded=null;
+}
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let animId=0;
+/* 화면 비율에 맞춰 viewBox를 넓힌다 (확대·이동 계산이 정확해지도록) */
+function fitAspect(t){
+  const r=$('#map').getBoundingClientRect();if(!r.width||!r.height)return {...t};
+  const a=r.width/r.height;let {x,y,w,h}=t;
+  if(w/h<a){const nw=h*a;x-=(nw-w)/2;w=nw}else{const nh=w/a;y-=(nh-h)/2;h=nh}
+  return {x,y,w,h};
+}
+function setVB(v){vb=v;$('#map').setAttribute('viewBox',`${v.x} ${v.y} ${v.w} ${v.h}`)}
+function zoomTo(t,instant){
+  t=fitAspect(t);const id=++animId;
+  if(reduce||instant||!vb){setVB(t);return}
+  const from={...vb},t0=performance.now(),dur=500;
+  const step=now=>{if(id!==animId)return;const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);
+    setVB({x:from.x+(t.x-from.x)*e,y:from.y+(t.y-from.y)*e,w:from.w+(t.w-from.w)*e,h:from.h+(t.h-from.h)*e});if(k<1)requestAnimationFrame(step)};
+  requestAnimationFrame(step);
+}
+function zoomFamily(fid,instant){const c=fc[fid];if(!c)return;const h=ISL+S.fam+24;zoomTo({x:c.x-h,y:c.y-h,w:2*h,h:2*h+S.fam},instant)}
+function zoomAll(instant){zoomTo({x:-10,y:-10,w:W+20,h:H+20},instant)}
+/* 화면 좌표(cx,cy)를 중심으로 f배 (f<1 = 확대) */
+function zoomAt(f,cx,cy){
+  animId++;const r=$('#map').getBoundingClientRect();
+  const nw=Math.min(Math.max(W,H)*3,Math.max(110,vb.w*f));f=nw/vb.w;
+  const px=vb.x+(cx-r.left)/r.width*vb.w, py=vb.y+(cy-r.top)/r.height*vb.h;
+  setVB({x:px-(px-vb.x)*f,y:py-(py-vb.y)*f,w:vb.w*f,h:vb.h*f});
+}
+function zoomCenter(f){const r=$('#map').getBoundingClientRect();zoomAt(f,r.left+r.width/2,r.top+r.height/2)}
+
+/* ---------- 선택 ---------- */
+function pick(pid){const p=byId(pid);if(!p)return;selPid=pid;selFid=p.fid;payOpen=false;bulkOpen=false;view='detail';renderAll();zoomFamily(p.fid)}
+function pickFamily(fid){const ms=members(fid);if(ms[0])pick(ms[0].id)}
+
+/* ---------- 패널 ---------- */
+function renderTabs(){
+  ['search','new','due'].forEach(v=>$('#t-'+v).setAttribute('aria-selected',String(view===v||(v==='search'&&view==='detail'))));
+  const d=dueList();$('#due-n').textContent=d.people+'명';
+}
+function personRow(p,q){
+  const st=state(p);
+  let nm=esc(p.name);if(q&&p.name.includes(q))nm=nm.replace(esc(q),`<mark>${esc(q)}</mark>`);
+  const ph=last4(p.phone);
+  return `<li><button class="row" data-act="pick" data-pid="${p.id}"><i class="dot ${st} ${p.dec?'dec':''}"></i>
+    <span><span class="nm">${nm}</span><span class="sb">${esc(famOf(p.fid).name)} · ${esc(p.rel)}${ph?' · ☎ '+ph:''}${p.dec?' · 영가':''}</span></span>
+    ${pill(st)}</button></li>`;
+}
+function pill(st){return st==='lit'?'<span class="pill lit">올해 켬</span>':st==='due'?'<span class="pill due">올해 아직</span>':'<span class="pill none">기록 없음</span>'}
+
+function renderSearch(){
+  $('#panel').innerHTML=`
+    <label class="biglabel" for="q">누구를 찾으세요?</label>
+    <input class="search" id="q" type="search" autocomplete="off" placeholder="이름 또는 전화 뒷자리">
+    <div id="results"></div>`;
+  const q=$('#q');q.addEventListener('input',()=>renderResults(q.value));renderResults('');
+}
+function renderResults(raw){
+  const q=raw.trim().replace(/\s/g,''), digits=q.replace(/\D/g,'');
+  const box=$('#results');
+  if(!q){box.innerHTML=`<p class="hint">예: 김영수, 7781. 아래 가족 이름을 눌러도 돼요.</p><div class="chips" style="margin-top:12px">${
+    families.map(f=>`<button class="chip" data-act="fam" data-fid="${f.id}">${esc(f.name)}</button>`).join('')}</div>`;return}
+  const res=people.filter(p=>p.name.includes(q)||famOf(p.fid).name.includes(q)||(digits.length>=3&&digits===q&&p.phone.replace(/\D/g,'').includes(digits)));
+  box.innerHTML=res.length?`<p class="hint">${res.length}명 찾았어요</p><ul class="list" style="margin-top:8px">${res.map(p=>personRow(p,q)).join('')}</ul>`
+    :`<p class="hint">"${esc(raw)}"(으)로 찾은 분이 없어요. 처음 오신 분이면 <b>새로 등록</b>을 눌러 주세요.</p><button class="secondary" data-act="new-with" style="margin-top:12px">"${esc(raw)}" 님 새로 등록하기</button>`;
+}
+
+function renderDetail(){
+  const p=byId(selPid);if(!p){view='search';return renderPanel()}
+  const f=famOf(p.fid), ms=members(p.fid), st=state(p), lastPay=p.pay[LAST], thisPay=p.pay[THIS];
+  const due=ms.filter(m=>!m.pay[THIS]);
+  const kin=links.filter(l=>l.a===p.id||l.b===p.id||byId(l.a).fid===p.fid||byId(l.b).fid===p.fid);
+  let statusHtml=st==='lit'
+    ?`<div class="status lit"><strong>${THIS}년 연등을 켰어요</strong><span>${esc(thisPay.type)} ${won(thisPay.amount)} · ${md(thisPay.date)} · ${esc(thisPay.method)}</span></div>`
+    :`<div class="status ${st}"><strong>${THIS}년 연등비 아직 안 내셨어요</strong><span>${lastPay?`작년(${LAST}): ${esc(lastPay.type)} ${won(lastPay.amount)}`:'작년 기록 없음'}</span></div>`;
+  let payHtml='';
+  if(!thisPay){
+    if(payOpen){const d=draft;
+      payHtml=`<div class="box" aria-label="연등비 받기">
+        <p class="q">어떤 연등인가요?</p>
+        <div class="seg" role="radiogroup">${Object.keys(PRICE).map(t=>`<button role="radio" aria-checked="${d.type===t}" data-act="d-type" data-v="${t}">${t}<small>${won(PRICE[t])}</small></button>`).join('')}</div>
+        <div class="field"><label for="pf-amount">받은 금액 <small>(원)</small></label><input class="input" id="pf-amount" inputmode="numeric" value="${d.amount}"></div>
+        <p class="q">어떻게 내셨나요?</p>
+        <div class="seg" role="radiogroup">${METHODS.map(m=>`<button role="radio" aria-checked="${d.method===m}" data-act="d-method" data-v="${m}">${m}</button>`).join('')}</div>
+        <div class="btnrow"><button class="primary" data-act="pay-ok">받았습니다</button><button class="ghost" data-act="pay-cancel">취소</button></div></div>`;
+    } else payHtml=`<button class="primary" data-act="pay-open">${p.dec?'영가등':'올해 연등비'} 받기${lastPay?' · 작년처럼 '+won(lastPay.amount):''}</button>`;
+  }
+  let bulkHtml='';
+  if(due.length>1){
+    const tot=due.reduce((s,m)=>s+(m.pay[LAST]?m.pay[LAST].amount:PRICE[m.dec?'영가등':'축원등']),0);
+    bulkHtml=bulkOpen?`<div class="box"><p class="q">가족 ${due.length}분 연등비를 함께 받을까요?</p>
+        <ul class="bulklist">${due.map(m=>{const t=m.pay[LAST]?m.pay[LAST].type:(m.dec?'영가등':'축원등');return `<li>${esc(m.name)} · ${t} ${won(m.pay[LAST]?m.pay[LAST].amount:PRICE[t])}</li>`}).join('')}</ul>
+        <p class="q">합계 <span class="total">${won(tot)}</span></p>
+        <div class="seg" role="radiogroup">${METHODS.map(m=>`<button role="radio" aria-checked="${draft.method===m}" data-act="d-method" data-v="${m}">${m}</button>`).join('')}</div>
+        <div class="btnrow"><button class="primary" data-act="bulk-ok">모두 받았습니다</button><button class="ghost" data-act="bulk-cancel">취소</button></div></div>`
+      :`<button class="secondary" data-act="bulk-open">가족 ${due.length}분 함께 받기 · ${won(tot)}</button>`;
+  }
+  const kinHtml=kin.length?`<h3 class="sec">친척</h3><div class="chips">${kin.map(l=>{const a=byId(l.a),b=byId(l.b);const other=a.fid===p.fid?b:a;
+    return `<button class="chip" data-act="pick" data-pid="${other.id}">${esc(famOf(other.fid).name)} · ${esc(other.name)} (${esc(l.label)})</button>`}).join('')}</div>`:'';
+  $('#panel').innerHTML=`
+    <button class="back" data-act="back">← 찾기로 돌아가기</button>
+    <div class="phead"><i class="dot big ${st} ${p.dec?'dec':''}"></i><div><h2>${esc(p.name)}</h2><p class="sub">${esc(f.name)} · ${esc(p.rel)}${p.dec?' · 영가':''}</p></div></div>
+    ${statusHtml}${payHtml}
+    <dl class="info">${p.phone?`<dt>전화</dt><dd>${esc(p.phone)}</dd>`:''}<dt>${p.dec?'기일':'생년'}</dt><dd>${esc(p.birth)}${p.dec?'':'년'}</dd>${p.memo?`<dt>메모</dt><dd>${esc(p.memo)}</dd>`:''}</dl>
+    <h3 class="sec">${esc(f.name)} ${ms.length}명</h3>
+    <ul class="list">${ms.map(m=>personRow(m)).join('')}</ul>
+    ${bulkHtml}${kinHtml}
+    <button class="ghost" data-act="add-to" style="width:100%">+ 이 가족에 사람 추가</button>`;
+  if(payOpen){const a=$('#pf-amount');a.addEventListener('input',()=>{draft.amount=a.value.replace(/\D/g,'')})}
+}
+
+let newDraft={name:'',phone:'',birth:'',dec:false,mode:'new',fid:'',rel:'본인',type:'축원등',payNow:true,method:'현금',err:''};
+function renderNew(){
+  const d=newDraft;
+  const fams=[...families].sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  $('#panel').innerHTML=`
+    <p class="biglabel" style="margin:0">처음 오신 분 등록</p>
+    <p class="hint">이름과 전화번호만 있으면 돼요. 나머지는 나중에 채워도 됩니다.</p>
+    <div class="field"><label for="nf-name">이름</label><input class="input" id="nf-name" autocomplete="off" value="${esc(d.name)}"></div>
+    <label class="check"><input type="checkbox" id="nf-dec" ${d.dec?'checked':''}> 돌아가신 분(영가)이에요</label>
+    ${d.dec?'':`<div class="field"><label for="nf-phone">전화번호</label><input class="input" id="nf-phone" inputmode="tel" autocomplete="off" value="${esc(d.phone)}"></div>`}
+    <div class="field"><label for="nf-birth">${d.dec?'기일':'태어난 해'} <small>(선택)</small></label><input class="input" id="nf-birth" autocomplete="off" placeholder="${d.dec?'예: 음 3월 12일':'예: 1956'}" value="${esc(d.birth)}"></div>
+    <p class="q">가족</p>
+    <div class="seg" role="radiogroup">
+      <button role="radio" aria-checked="${d.mode==='new'}" data-act="n-mode" data-v="new">새 가족 만들기</button>
+      <button role="radio" aria-checked="${d.mode==='join'}" data-act="n-mode" data-v="join">있는 가족에 넣기</button></div>
+    ${d.mode==='join'?`
+      <div class="field"><label for="nf-fam">어느 가족인가요?</label><select class="input" id="nf-fam"><option value="">가족을 골라 주세요</option>${fams.map(f=>`<option value="${f.id}" ${d.fid===f.id?'selected':''}>${esc(f.name)}</option>`).join('')}</select></div>
+      <div class="field"><label for="nf-rel">가족 안에서 어떤 관계인가요?</label><select class="input" id="nf-rel">${RELS.filter(r=>r!=='본인').map(r=>`<option ${d.rel===r?'selected':''}>${r}</option>`).join('')}</select></div>`:''}
+    <label class="check"><input type="checkbox" id="nf-pay" ${d.payNow?'checked':''}> 올해 연등비도 지금 받기</label>
+    ${d.payNow?`<div class="seg" role="radiogroup">${Object.keys(PRICE).map(t=>`<button role="radio" aria-checked="${d.type===t}" data-act="n-type" data-v="${t}">${t}<small>${won(PRICE[t])}</small></button>`).join('')}</div>
+      <div class="seg" role="radiogroup">${METHODS.map(m=>`<button role="radio" aria-checked="${d.method===m}" data-act="n-method" data-v="${m}">${m}</button>`).join('')}</div>`:''}
+    ${d.err?`<p class="err" role="alert">${esc(d.err)}</p>`:''}
+    <button class="primary" data-act="n-save">등록하기</button>`;
+  const bind=(id,k,fn)=>{const el=$(id);if(el)el.addEventListener(el.type==='checkbox'?'change':'input',()=>{d[k]=el.type==='checkbox'?el.checked:el.value;if(fn)fn()})};
+  bind('#nf-name','name');bind('#nf-phone','phone');bind('#nf-birth','birth');
+  bind('#nf-dec','dec',()=>{if(d.dec)d.type='영가등';renderNew()});bind('#nf-pay','payNow',renderNew);
+  const fs=$('#nf-fam');if(fs)fs.addEventListener('change',()=>d.fid=fs.value);
+  const rs=$('#nf-rel');if(rs)rs.addEventListener('change',()=>d.rel=rs.value);
+}
+
+function dueList(){
+  const fams=families.map(f=>({f,due:members(f.id).filter(p=>p.pay[LAST]&&!p.pay[THIS]),all:members(f.id)})).filter(x=>x.due.length);
+  return {fams,people:fams.reduce((s,x)=>s+x.due.length,0)};
+}
+function renderDue(){
+  const d=dueList();
+  $('#panel').innerHTML=`
+    <p class="biglabel" style="margin:0">올해 아직 안 오신 분</p>
+    <p class="hint">작년(${LAST})에 연등을 켰는데 올해 연등비를 아직 안 내신 분들이에요. 가족을 누르면 지도에서 크게 보여요.</p>
+    <p class="q">${d.fams.length}가족 · ${d.people}명</p>
+    <ul class="list">${d.fams.map(x=>{const tot=x.due.reduce((s,p)=>s+p.pay[LAST].amount,0);const rep=x.all[0];
+      return `<li><button class="row" data-act="fam" data-fid="${x.f.id}"><i class="dot due"></i>
+        <span><span class="nm">${esc(x.f.name)}</span><span class="sb">${x.due.map(p=>esc(p.name)).join(', ')}${rep&&rep.phone?' · ☎ '+esc(rep.phone):''}</span></span>
+        <span class="pill due">${x.due.length}/${x.all.length}명</span></button></li>`}).join('')}</ul>
+    <p class="mini">나중에 이 명단으로 안내 문자를 보내거나 엑셀로 뽑을 수 있게 만들 예정이에요.</p>`;
+}
+
+function isPreset(k){const p=PRESETS[k];return Object.keys(p).every(x=>S[x]===p[x])}
+function renderSettings(){
+  $('#mapset-body').innerHTML=`
+    <p class="hint">글씨, 점, 선 크기를 바꿔요. 이 컴퓨터에 기억돼요.</p>
+    <p class="q">한 번에 바꾸기</p>
+    <div class="seg" role="radiogroup">${Object.keys(PRESETS).map(k=>`<button role="radio" aria-checked="${isPreset(k)}" data-act="s-preset" data-v="${k}">${k}</button>`).join('')}</div>
+    ${SET_ROWS.map(([k,l,mn,mx,st])=>`<div class="setrow">
+      <div class="sethead"><label for="s-${k}">${l}</label><output id="o-${k}" for="s-${k}">${S[k]}</output></div>
+      <div class="setctl"><button class="stepb" data-act="s-step" data-k="${k}" data-d="-1" aria-label="${l} 줄이기">−</button>
+        <input type="range" id="s-${k}" data-k="${k}" min="${mn}" max="${mx}" step="${st}" value="${S[k]}">
+        <button class="stepb" data-act="s-step" data-k="${k}" data-d="1" aria-label="${l} 키우기">+</button></div></div>`).join('')}
+    <p class="q">보이기</p>
+    <label class="check"><input type="checkbox" id="s-names" data-k="names" ${S.names?'checked':''}> 점 아래 이름 보이기</label>
+    <label class="check"><input type="checkbox" id="s-rels" data-k="rels" ${S.rels?'checked':''}> 친척 점선 보이기</label>
+    <label class="check"><input type="checkbox" id="s-flicker" data-k="flicker" ${S.flicker?'checked':''}> 연등 불빛 은은하게 깜빡이기</label>
+    <button class="ghost" data-act="s-reset" style="width:100%">처음 설정으로 되돌리기</button>`;
+  $('#mapset-body').querySelectorAll('input[type=range]').forEach(el=>el.addEventListener('input',()=>{S[el.dataset.k]=+el.value;applySettings()}));
+  $('#mapset-body').querySelectorAll('input[type=checkbox]').forEach(el=>el.addEventListener('change',()=>{S[el.dataset.k]=el.checked;applySettings()}));
+}
+function syncSettingsUI(){
+  if($('#mapset').hidden)return;
+  SET_ROWS.forEach(([k])=>{const r=$('#s-'+k),o=$('#o-'+k);if(r)r.value=S[k];if(o)o.textContent=S[k]});
+  document.querySelectorAll('[data-act="s-preset"]').forEach(b=>b.setAttribute('aria-checked',String(isPreset(b.dataset.v))));
+}
+function applySettings(){saveS();syncSettingsUI();renderMap();if(selFid)zoomFamily(selFid,true);else zoomAll(true)}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act^="s-"]');if(!b)return;const a=b.dataset.act;
+  if(a==='s-preset')Object.assign(S,PRESETS[b.dataset.v]);
+  else if(a==='s-reset'){S={...DEF};renderSettings()}
+  else if(a==='s-step'){const row=SET_ROWS.find(r=>r[0]===b.dataset.k);const [k,,mn,mx,st]=row;S[k]=Math.min(mx,Math.max(mn,+(S[k]+st*(+b.dataset.d)).toFixed(1)))}
+  applySettings();
+});
+function renderPanel(){({search:renderSearch,detail:renderDetail,new:renderNew,due:renderDue})[view]()}
+function renderStat(){
+  const n=people.length, lit=people.filter(p=>p.pay[THIS]).length, sum=people.reduce((s,p)=>s+(p.pay[THIS]?+p.pay[THIS].amount:0),0);
+  $('#stat').innerHTML=`<span>올해 연등 켠 분 <b>${lit}</b> / ${n}명</span><span class="bar" aria-hidden="true"><i style="width:${Math.round(lit/n*100)}%"></i></span><span>받은 금액 <b>${won(sum)}</b></span>`;
+}
+function renderAll(){renderTabs();renderPanel();renderMap();renderStat()}
+
+/* ---------- 기록 ---------- */
+function toast(msg){
+  $('#toast-msg').textContent=msg;$('#toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('#toast').hidden=true,7000);
+}
+function commit(fn,msg){undoSnap={data:snapshot(),selPid,selFid,view};fn();renderAll();toast(msg)}
+$('#undo').addEventListener('click',()=>{if(!undoSnap)return;restore(undoSnap.data);({selPid,selFid,view}=undoSnap);if(!byId(selPid)){selPid=null;selFid=null;view='search'}
+  undoSnap=null;payOpen=bulkOpen=false;$('#toast').hidden=true;renderAll();if(selFid)zoomFamily(selFid);else zoomAll()});
+
+function openPay(p){const l=p.pay[LAST];const t=l?l.type:(p.dec?'영가등':'축원등');draft={type:t,amount:l?l.amount:PRICE[t],method:'현금'};payOpen=true;bulkOpen=false}
+
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;const p=byId(selPid);
+  if(a==='pick')pick(b.dataset.pid);
+  else if(a==='fam')pickFamily(b.dataset.fid);
+  else if(a==='back'){view='search';selPid=null;selFid=null;renderAll();zoomAll()}
+  else if(a==='pay-open'){openPay(p);renderPanel()}
+  else if(a==='pay-cancel'){payOpen=false;renderPanel()}
+  else if(a==='d-type'){draft.type=b.dataset.v;draft.amount=PRICE[b.dataset.v];renderPanel()}
+  else if(a==='d-method'){draft.method=b.dataset.v;renderPanel()}
+  else if(a==='pay-ok'){const amt=+draft.amount;if(!amt){const el=$('#pf-amount');el.focus();return}
+    commit(()=>{p.pay[THIS]={type:draft.type,amount:amt,date:today(),method:draft.method};payOpen=false},`${p.name} 님 ${draft.type} ${won(amt)} 받았어요`)}
+  else if(a==='bulk-open'){draft={method:'현금'};bulkOpen=true;payOpen=false;renderPanel()}
+  else if(a==='bulk-cancel'){bulkOpen=false;renderPanel()}
+  else if(a==='bulk-ok'){const due=members(p.fid).filter(m=>!m.pay[THIS]);let tot=0;
+    commit(()=>{due.forEach(m=>{const l=m.pay[LAST];const t=l?l.type:(m.dec?'영가등':'축원등');const amt=l?l.amount:PRICE[t];tot+=amt;m.pay[THIS]={type:t,amount:amt,date:today(),method:draft.method}});bulkOpen=false},
+      `${famOf(p.fid).name} ${due.length}분 받았어요`)}
+  else if(a==='add-to'){newDraft={...newDraft,name:'',phone:'',birth:'',dec:false,mode:'join',fid:p.fid,rel:'아들',err:'',dupOk:false};view='new';renderAll()}
+  else if(a==='new-with'){newDraft={...newDraft,name:($('#q')||{}).value||'',mode:'new',err:''};view='new';renderAll()}
+  else if(a==='n-mode'){newDraft.mode=b.dataset.v;renderNew()}
+  else if(a==='n-type'){newDraft.type=b.dataset.v;renderNew()}
+  else if(a==='n-method'){newDraft.method=b.dataset.v;renderNew()}
+  else if(a==='n-save')saveNew();
+});
+function saveNew(){
+  const d=newDraft;d.err='';
+  if(!d.name.trim())d.err='이름을 적어 주세요.';
+  else if(!d.dec&&d.phone.replace(/\D/g,'').length<9)d.err='전화번호를 끝까지 적어 주세요. (예: 010-1234-5678)';
+  else if(d.mode==='join'&&!d.fid)d.err='어느 가족인지 골라 주세요.';
+  if(d.err){renderNew();return}
+  const dup=people.find(p=>!d.dec&&p.phone&&p.phone.replace(/\D/g,'')===d.phone.replace(/\D/g,''));
+  if(dup&&!d.dupOk){d.err=`같은 전화번호로 ${dup.name} 님(${famOf(dup.fid).name})이 이미 있어요. 같은 분이면 찾기에서 고르시고, 다른 분이면 등록하기를 한 번 더 눌러 주세요.`;d.dupOk=true;renderNew();return}
+  commit(()=>{
+    let fid=d.fid,rel=d.rel;
+    if(d.mode==='new'){fid='f'+(++seq);families.push({id:fid,name:d.name.trim()+' 가족'});rel='본인'}
+    const ph=d.phone.replace(/\D/g,'');const phone=ph.length===11?ph.replace(/(\d{3})(\d{4})(\d{4})/,'$1-$2-$3'):d.phone;
+    const p={id:'p'+(++seq),fid,name:d.name.trim(),rel,phone:d.dec?'':phone,birth:d.birth||'-',dec:d.dec,memo:'올해 처음 오심',pay:{}};
+    if(d.payNow)p.pay[THIS]={type:d.type,amount:PRICE[d.type],date:today(),method:d.method};
+    people.push(p);selPid=p.id;selFid=fid;justAdded=p.id;view='detail';
+    newDraft={name:'',phone:'',birth:'',dec:false,mode:'new',fid:'',rel:'본인',type:'축원등',payNow:true,method:'현금',err:''};
+  },`${d.name.trim()} 님을 등록했어요`);
+  zoomFamily(selFid);
+}
+
+/* ---------- 지도: 휠 확대·축소, 끌어서 이동, 두 손가락 확대 ---------- */
+const map=$('#map');
+let dragged=false,startPt=null,pinch0=null;const ptrs=new Map();
+const pvals=()=>[...ptrs.values()];
+const pdist=()=>{const [a,b]=pvals();return Math.hypot(a.x-b.x,a.y-b.y)};
+const pmid=()=>{const [a,b]=pvals();return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}};
+map.addEventListener('wheel',e=>{e.preventDefault();const d=e.deltaMode===1?e.deltaY*16:e.deltaY;zoomAt(Math.exp(d*0.0015),e.clientX,e.clientY)},{passive:false});
+map.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(ptrs.size===1){startPt={x:e.clientX,y:e.clientY};dragged=false}else if(ptrs.size===2)pinch0=pdist()});
+map.addEventListener('pointermove',e=>{
+  if(!ptrs.has(e.pointerId))return;const prev=ptrs.get(e.pointerId),cur={x:e.clientX,y:e.clientY};ptrs.set(e.pointerId,cur);
+  if(ptrs.size===1){
+    if(!dragged&&Math.hypot(cur.x-startPt.x,cur.y-startPt.y)>6){dragged=true;map.classList.add('dragging');try{map.setPointerCapture(e.pointerId)}catch(_){}}
+    if(dragged){animId++;const r=map.getBoundingClientRect();setVB({...vb,x:vb.x-(cur.x-prev.x)/r.width*vb.w,y:vb.y-(cur.y-prev.y)/r.height*vb.h})}
+  }else if(ptrs.size===2){dragged=true;const d=pdist(),m=pmid();if(pinch0&&d)zoomAt(pinch0/d,m.x,m.y);pinch0=d}
+});
+const ptrUp=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch0=null;if(!ptrs.size)map.classList.remove('dragging')};
+map.addEventListener('pointerup',ptrUp);map.addEventListener('pointercancel',ptrUp);
+map.addEventListener('click',e=>{if(dragged){dragged=false;return}
+  const n=e.target.closest('.node');if(n){pick(n.dataset.pid);return}const i=e.target.closest('.island');if(i)pickFamily(i.dataset.fid)});
+map.addEventListener('keydown',e=>{const n=e.target.closest('.node');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();pick(n.dataset.pid)}});
+$('#zin').addEventListener('click',()=>zoomCenter(0.75));
+$('#zout').addEventListener('click',()=>zoomCenter(1/0.75));
+
+/* ---------- 탭 · 패널 접기 ---------- */
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  view=t.dataset.view;selPid=null;selFid=null;payOpen=bulkOpen=false;renderAll();zoomAll();if(view==='search')$('#q').focus()}));
+$('#fit').addEventListener('click',()=>{selFid=null;renderMap();zoomAll()});
+let collapsed=false;try{collapsed=localStorage.getItem('ll-col')==='1'}catch(e){}
+function applyCollapse(){
+  $('.app').classList.toggle('collapsed',collapsed);const b=$('#collapse');const t=collapsed?'업무 패널 열기':'업무 패널 접기';
+  b.setAttribute('aria-expanded',String(!collapsed));b.title=t;b.querySelector('.lbl').textContent=t;b.querySelector('.chev').textContent=collapsed?'›':'‹';
+}
+$('#collapse').addEventListener('click',()=>{collapsed=!collapsed;try{localStorage.setItem('ll-col',collapsed?'1':'0')}catch(e){}applyCollapse()});
+function showSettings(open){
+  const m=$('#mapset');m.hidden=!open;$('#openset').setAttribute('aria-expanded',String(open));
+  if(open){renderSettings();$('#mapset-close').focus()}else $('#openset').focus();
+}
+$('#openset').addEventListener('click',()=>showSettings($('#mapset').hidden));
+$('#mapset-close').addEventListener('click',()=>showSettings(false));
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#mapset').hidden)showSettings(false)});
+
+/* 지도 크기가 바뀌면(창 크기, 패널 접기) 배치와 비율을 다시 맞춘다 */
+new ResizeObserver(()=>{
+  if(!vb)return;const old=cols;layout();
+  if(cols!==old){renderMap();if(selFid)zoomFamily(selFid,true);else zoomAll(true);return}
+  const r=map.getBoundingClientRect();if(!r.width||!r.height)return;
+  const cx=vb.x+vb.w/2,cy=vb.y+vb.h/2,h=vb.w/(r.width/r.height);setVB({x:cx-vb.w/2,y:cy-h/2,w:vb.w,h});
+}).observe(map);
+
+applyCollapse();renderAll();zoomAll(true);
+</script>
+</body>
+</html>
