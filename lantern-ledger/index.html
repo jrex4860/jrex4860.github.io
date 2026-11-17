@@ -214,7 +214,7 @@ svg.noflicker .node.lit .glow{animation:none}
 <header class="top">
   <div class="brand"><h1>연등 장부</h1><span class="sample">봉덕사</span></div>
   <div class="event">
-    <div class="ev"><b>2027 부처님오신날</b> 연등 접수 중 · 불기 2571년</div>
+    <div class="ev"><b>2027 부처님오신날</b> 연등 접수 중 · 불기 2571년 · <span id="today"></span></div>
     <div class="stat" id="stat"></div>
   </div>
 </header>
@@ -569,7 +569,7 @@ document.addEventListener('click',e=>{
 function renderPanel(){({search:renderSearch,detail:renderDetail,new:renderNew,due:renderDue})[view]()}
 function renderStat(){
   const n=people.length, lit=people.filter(p=>p.pay[THIS]).length, sum=people.reduce((s,p)=>s+(p.pay[THIS]?+p.pay[THIS].amount:0),0);
-  $('#stat').innerHTML=`<span>올해 연등 켠 분 <b>${lit}</b> / ${n}명</span><span class="bar" aria-hidden="true"><i style="width:${Math.round(lit/n*100)}%"></i></span><span>받은 금액 <b>${won(sum)}</b></span>`;
+  $('#stat').innerHTML=`<span>올해 연등 켠 분 <b>${lit}</b> / ${n}명</span><span class="bar" aria-hidden="true"><i style="width:${Math.round(lit/n*100)}%"></i></span>`;
 }
 function renderAll(){renderTabs();renderPanel();renderMap();renderStat()}
 
@@ -676,6 +676,8 @@ new ResizeObserver(()=>{
   const cx=vb.x+vb.w/2,cy=vb.y+vb.h/2,h=vb.w/(r.width/r.height);setVB({x:cx-vb.w/2,y:cy-h/2,w:vb.w,h});
 }).observe(map);
 
+function showToday(){const d=new Date();$('#today').textContent=`${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (${'일월화수목금토'[d.getDay()]})`}
+showToday();setInterval(showToday,60000);
 applyCollapse();renderAll();zoomAll(true);
 </script>
 </body>
